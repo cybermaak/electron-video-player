@@ -6,7 +6,18 @@
     </head>
     <body>
         <section id='playerContainer' class='player paused'>
-            <video id='videoContainer' class='video draggable' ></video>
+            <div class='fullWH draggable' >
+                <video style="vertical-align: top; float: left;" id='videoContainerFront' class='video'></video>
+                <video style="vertical-align: top; float: right;" id='videoContainerBack' class='video'></video>
+                <video style="vertical-align: bottom; float: left;"  id='videoContainerLeft' class='video'></video>
+                <video style="vertical-align: bottom; float: right;" id='videoContainerRight' class='video'></video>
+            </div>            
+            <div class='fullWH' style=" position:absolute;bottom:0;left:0;" >
+                <div style="vertical-align: top; float: left;" class='video' id='videoContainerFrontOverlay'>Front</div>
+                <div style="vertical-align: top; float: right;" class='video' id='videoContainerBackOverlay'>Back</div>
+                <div style="vertical-align: bottom; float: left;" class='video' id='videoContainerLeftOverlay'>Left Repeater</div>
+                <div style="vertical-align: bottom; float: right;" class='video' id='videoContainerRightOverlay'>Right Repeater</div>
+            </div>                            
             <div id='controlContainer' class='controls'>
                 <button id='play' class='play icon-play'></button>
                 <button id='pause' class='hide pause icon-pause'></button>
@@ -33,10 +44,6 @@
                 <button id='fileChooser' class='fileChooser'>
                     Choose File
                 </button>
-                <input type='text'
-                       id='enterLink'
-                       class='enterLink'
-                       placeholder='URL or path'
                 />
                 <input type='file'
                        accept="video/*"
