@@ -1,5 +1,11 @@
 # DON'T BE A DICK PUBLIC LICENSE
 
+> Version 2, November 2019
+
+> Copyright (C) 2009 Mohammed Kamel <maak@cybermaak.net>
+ 
+ This program is derivative of the "Electron Video Player" by Philip Sturgeon.
+ 
 > Version 1, December 2009
 
 > Copyright (C) 2009 Philip Sturgeon <email@philsturgeon.co.uk>

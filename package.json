@@ -1,10 +1,10 @@
 {
-  "name": "electron-video-player",
-  "productName": "Electron Video Player",
-  "description": "Video player for local and remote files",
+  "name": "tesla-cam-electron-video-player",
+  "productName": "Tesla Cam Viewer",
+  "description": "Video player for Tesla dash cam videos",
   "version": "0.0.1",
   "main": "app/main.js",
-  "author": "RIAEvangelist",
+  "author": "RIAEvangelist,cybermaak",
   "dependencies": {},
   "devDependencies": {
     "electron-builder": "^22.1.0",
@@ -17,7 +17,8 @@
       "packageCategory": "video"
     },
     "mac": {
-      "category": "public.app-category.video"
+      "category": "public.app-category.video" ,
+      "target": ["dmg", "pkg"]
     },
     "win": {
       "target": ["zip", "nsis", "portable", "msi"]
