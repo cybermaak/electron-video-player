@@ -7,8 +7,8 @@
   "author": "RIAEvangelist",
   "dependencies": {},
   "devDependencies": {
-    "electron-builder": "^10.9.3",
-    "electron": "1.4.13"
+    "electron-builder": "^22.1.0",
+    "electron": "^2.0.18"
   },
   "license": "DBAD",
   "build": {
@@ -18,9 +18,14 @@
     },
     "mac": {
       "category": "public.app-category.video"
+    },
+    "win": {
+      "target": ["zip", "nsis", "portable", "msi"]
     }
   },
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
   }
 }
