@@ -70,13 +70,39 @@ input{
 }
 
 .video{
+    width:100%;
+    height:100%;
+}
+
+.video-div{
     width:50%;
     height:50%;
 }
 
-.fullWH{
+
+.top{
+    vertical-align: top;
+}
+.bottom{
+    vertical-align: top;
+}
+.left{
+    float: left;
+}
+.right{
+    float: right;
+}
+.videosContainer{
     width:100%;
     height:100%;
+}
+
+.videosLabelsContainer{
+    width:100%;
+    height:100%;
+    position:absolute;
+    bottom:0;
+    left:0;
 }
 
 button{
@@ -183,7 +209,7 @@ button:hover{
     left: calc(5% + 10px);
     top: 13px;
     line-height: 25px;
-
+    pointer-events: none;
 }
 
 .volRange{

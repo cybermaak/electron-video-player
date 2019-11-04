@@ -3,39 +3,39 @@ window.addEventListener(
     init
 );
 
-const v = {
-    Front: () => this.videoContainer('Front'),
-    Back: () => this.videoContainer('Back'),
-    Left: () => this.videoContainer('Left'),
-    Right: () => this.videoContainer('Right'),
+function formatDuration(s) {
+    const date = new Date(s * 1000);
+    const time = [];
 
-    videoContainer: pos => document.querySelector(`#videoContainer${pos}`),
+    time.push(date.getUTCHours());
+    time.push(date.getUTCMinutes());
+    time.push(date.getUTCSeconds());
+
+    return time.map(t => t.toString().padStart(2, '0')).join(':');
+}
+
+const v = {
+    Front: () => document.querySelector('#videoContainerFront'),
+    Back: () => document.querySelector('#videoContainerBack'),
+    Left: () => document.querySelector('#videoContainerLeft'),
+    Right: () => document.querySelector('#videoContainerRight'),
 
     addCascadingEventListener: function (eventName, otherVideoAction) {
-        return this.forEach((video, _, array) =>
-                                video.addEventListener(
-                                    eventName,
-                                    () => array.forEach(otherVideoAction)
-                                ));
+        return this.all().forEach((video, _, array) =>
+                                      video.addEventListener(
+                                          eventName,
+                                          () => array.forEach(otherVideoAction)
+                                      ));
     },
 
     addEventListener: function (eventName, action) {
-        return this.forEach(
-            video => video.addEventListener(eventName, action));
+        return this.all().forEach(video => video.addEventListener(eventName, action));
     },
 
     all: function () {
         return [this.Front(), this.Back(), this.Left(), this.Right()];
     },
-
-    forEach: function (callback) {
-        return [this.Front(), this.Back(), this.Left(), this.Right()].forEach(callback);
-    },
 };
-
-function videoContainer(pos) {
-    return document.querySelector(`#videoContainer${pos}`)
-}
 
 function init() {
     document.querySelector('#prog').value = 0;
@@ -55,9 +55,9 @@ function bindEvents() {
     v.addEventListener('timeupdate', showProgress);
     v.addEventListener('error', () => videoError('Video Error'));
     v.addEventListener('stalled', () => videoError('Video Stalled'));
-    v.addEventListener('play', playing);
-    v.addEventListener('ended', ended);
-    v.addEventListener('pause', paused);
+    v.addEventListener('play', e => hideFileArea());
+    v.addEventListener('ended', e => showFileArea(false));
+    v.addEventListener('pause', e => showFileArea(true));
 
     dropArea.addEventListener('dragleave', makeUnDroppable);
     dropArea.addEventListener('dragenter', makeDroppable);
@@ -66,8 +66,8 @@ function bindEvents() {
 
     document.querySelector('#playerContainer').addEventListener('click', playerClicked);
     document.querySelector('#chooseVideo').addEventListener('change', loadVideo);
-    document.querySelector('#volRange').addEventListener('change', adjustVolume);
-    document.querySelector('#enterLink').addEventListener('change', loadVideo);
+    document.querySelector('#volRange').addEventListener('change',
+                                                         e => v.Front.volume = e.target.value);
 
     window.addEventListener('keyup',
                             e => {
@@ -80,53 +80,25 @@ function bindEvents() {
                             });
 }
 
-function getTime(ms) {
-    const date = new Date(ms);
-    const time = [];
-
-    time.push(date.getUTCHours());
-    time.push(date.getUTCMinutes());
-    time.push(date.getUTCSeconds());
-
-    return time.join(':');
-}
-
-function adjustVolume(e) {
-    v.Front.volume = e.target.value;
-}
-
 function showProgress() {
     const progBar = document.querySelector('#prog');
     const count = document.querySelector('#count');
 
     const currentTime = Math.min(...v.all().map(x => x.currentTime));
-
     const duration = Math.min(...v.all().map(x => x.duration));
 
     progBar.value = (currentTime / duration);
-    count.innerHTML = `${getTime(currentTime * 1000)}/${getTime(duration * 1000)}`;
+    count.innerHTML = `${formatDuration(currentTime)}/${formatDuration(duration)}`;
 }
 
 function togglePlay() {
     document.querySelector('.play:not(.hide),.pause:not(.hide)').click();
 }
 
-function playing(e) {
-
-    const player = document.querySelector('#playerContainer');
-
-    document.querySelector('#play').classList.add('hide');
-    document.querySelector('#pause').classList.remove('hide');
-    player.classList.remove('paused');
-
-    hideFileArea();
-}
-
 function fullscreened(e) {
     const player = document.querySelector('#playerContainer');
     player.classList.add('fullscreened');
     player.webkitRequestFullscreen();
-
 }
 
 function smallscreened(e) {
@@ -136,6 +108,12 @@ function smallscreened(e) {
 }
 
 function hideFileArea() {
+    const player = document.querySelector('#playerContainer');
+
+    document.querySelector('#play').classList.add('hide');
+    document.querySelector('#pause').classList.remove('hide');
+    player.classList.remove('paused');
+
     const dropArea = document.querySelector('#dropArea');
     dropArea.classList.add('hidden');
 
@@ -148,7 +126,16 @@ function hideFileArea() {
     );
 }
 
-function showFileArea() {
+function showFileArea(showPlay) {
+
+    if (showPlay) {
+        document.querySelector('#pause').classList.add('hide');
+        document.querySelector('#play').classList.remove('hide');
+    } else {
+        document.querySelector('#play').classList.remove('hide');
+        document.querySelector('#pause').classList.add('hide');
+    }
+
     const player = document.querySelector('#playerContainer');
     player.classList.add('paused');
 
@@ -162,20 +149,6 @@ function showFileArea() {
         },
         10
     );
-}
-
-function paused(e) {
-    document.querySelector('#pause').classList.add('hide');
-    document.querySelector('#play').classList.remove('hide');
-
-    showFileArea();
-}
-
-function ended(e) {
-    document.querySelector('#play').classList.remove('hide');
-    document.querySelector('#pause').classList.add('hide');
-
-    showFileArea();
 }
 
 function makeDroppable(e) {
@@ -222,7 +195,7 @@ function loadVideo(e) {
         setTimeout(
             () => {
                 document.querySelector('.dropArea').classList.remove('droppableArea');
-                document.querySelector('.play:not(.hide),.pause:not(.hide)').click();
+                togglePlay();
             },
             250
         );
@@ -248,14 +221,53 @@ function closeError() {
     );
 }
 
+const playerControl = {
+    video: () => togglePlay(),
+    play: () => {
+        if (!v.Front().videoWidth) {
+            videoError('Error Playing Video');
+            return;
+        }
+        v.Front().play();
+    },
+    pause: () => v.Front().pause(),
+    volume: () => document.querySelector('#volRange').classList.toggle('hidden'),
+    mute: () => {
+        v.Front().muted = (!v.Front().muted);
+        player.classList.toggle('muted');
+    },
+    volRange: () => {
+        //do nothing for now
+    },
+    fullscreen: () => fullscreened(),
+    smallscreen: () => smallscreened(),
+    prog: (e) => {
+        v.Front().currentTime = ((e.offsetX) / e.target.offsetWidth) * v.Front().duration;
+        v.Back().currentTime =
+            v.Left().currentTime = v.Right().currentTime = v.Front().currentTime;
+    },
+    close: () => window.close(),
+    fileChooser: () => document.querySelector('#chooseVideo').click(),
+    enterLink: () => {
+        //do nothing for now
+    },
+    error: () => closeError(),
+    errorMessage: () => closeError(),
+};
+
 function playerClicked(e) {
-    if (!e.target.id || e.target.id == 'controlContainer' || e.target.id == 'dropArea') {
+    if (!e.target.id || e.target.id === 'controlContainer' || e.target.id === 'dropArea' || e.target.id === 'count') {
         return;
     }
 
     const player = document.querySelector('#playerContainer');
 
-    switch (e.target.id) {
+    if(playerControl[e.target.id]) {
+        playerControl[e.target.id](e);
+    } else {
+        console.log(`stop half assing shit. what the hell is ${e.target.id}`);
+    }
+    /*switch (e.target.id) {
         case 'video' :
             togglePlay();
             break;
@@ -273,7 +285,7 @@ function playerClicked(e) {
             document.querySelector('#volRange').classList.toggle('hidden');
             break;
         case 'mute' :
-            v.Front().muted = (v.Front().muted) ? false : true;
+            v.Front().muted = (!v.Front().muted);
             player.classList.toggle('muted');
             break;
         case 'volRange' :
@@ -305,5 +317,5 @@ function playerClicked(e) {
             break;
         default :
             console.log('stop half assing shit.');
-    }
+    }                                             */
 }
