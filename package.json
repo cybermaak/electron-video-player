@@ -28,16 +28,15 @@
     },
     "win": {
       "target": [
-        "zip",
         "nsis",
-        "portable",
-        "msi"
+        "portable"
       ]
     }
   },
   "scripts": {
     "start": "electron .",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder"
+    "dist-wl": "electron-builder --win --linux",
+    "dist-mac": "electron-builder --mac"
   }
 }
