@@ -20,6 +20,18 @@ const v = {
     Left: () => document.querySelector('#videoContainerLeft'),
     Right: () => document.querySelector('#videoContainerRight'),
 
+    hasEnded: false,
+
+    sync: function sync() {
+        if (this.Front().media.readyState === 4) {
+            this.Back().currentTime =
+                this.Left().currentTime =
+                    this.Right().currentTime =
+                        this.Front().currentTime;
+        }
+        requestAnimationFrame(sync);
+    },
+
     addCascadingEventListener: function (eventName, otherVideoAction) {
         return this.all().forEach((video, _, array) =>
                                       video.addEventListener(
@@ -37,18 +49,37 @@ const v = {
     },
 };
 
+const controls = {
+    prog: () => document.querySelector('#prog'),
+    count: () => document.querySelector('#count'),
+    volRange: () => document.querySelector('#volRange'),
+    dropArea: () => document.querySelector('#dropArea'),
+    player: () => document.querySelector('#playerContainer'),
+    playButton: () => document.querySelector('#play'),
+    pauseButton: () => document.querySelector('#pause'),
+    errorPane: () => document.querySelector('#error'),
+    videoChooser: () => document.querySelector('#chooseVideo')
+};
+
 function init() {
-    document.querySelector('#prog').value = 0;
-    document.querySelector('#volRange').value = v.Front().volume;
+    controls.prog().value = 0;
+    controls.volRange().value = v.Front().volume;
     bindEvents();
+    v.sync();
 }
 
 function bindEvents() {
-    const dropArea = document.querySelector('#dropArea');
-
-    v.addCascadingEventListener('play', otherVideo => otherVideo.play());
+    v.addCascadingEventListener('play', otherVideo => {
+        if (v.hasEnded) {
+            otherVideo.currentTime = 0;
+        }
+        return otherVideo.play();
+    });
     v.addCascadingEventListener('pause', otherVideo => otherVideo.pause());
-    v.addCascadingEventListener('ended', otherVideo => otherVideo.pause());
+    v.addCascadingEventListener('ended', otherVideo => {
+        v.hasEnded = true;
+        return otherVideo.pause();
+    });
     v.addCascadingEventListener('error', otherVideo => otherVideo.pause());
     v.addCascadingEventListener('stalled', otherVideo => otherVideo.pause());
 
@@ -59,15 +90,15 @@ function bindEvents() {
     v.addEventListener('ended', e => showFileArea(false));
     v.addEventListener('pause', e => showFileArea(true));
 
-    dropArea.addEventListener('dragleave', makeUnDroppable);
-    dropArea.addEventListener('dragenter', makeDroppable);
-    dropArea.addEventListener('dragover', makeDroppable);
-    dropArea.addEventListener('drop', loadVideo);
+    controls.dropArea().addEventListener('dragleave', makeUnDroppable);
+    controls.dropArea().addEventListener('dragenter', makeDroppable);
+    controls.dropArea().addEventListener('dragover', makeDroppable);
+    controls.dropArea().addEventListener('drop', loadVideo);
 
-    document.querySelector('#playerContainer').addEventListener('click', playerClicked);
-    document.querySelector('#chooseVideo').addEventListener('change', loadVideo);
-    document.querySelector('#volRange').addEventListener('change',
-                                                         e => v.Front.volume = e.target.value);
+    controls.player().addEventListener('click', playerClicked);
+    controls.videoChooser().addEventListener('change', loadVideo);
+    controls.volRange().addEventListener('change',
+                                         e => v.Front.volume = e.target.value);
 
     window.addEventListener('keyup',
                             e => {
@@ -81,14 +112,11 @@ function bindEvents() {
 }
 
 function showProgress() {
-    const progBar = document.querySelector('#prog');
-    const count = document.querySelector('#count');
-
     const currentTime = Math.min(...v.all().map(x => x.currentTime));
     const duration = Math.min(...v.all().map(x => x.duration));
 
-    progBar.value = (currentTime / duration);
-    count.innerHTML = `${formatDuration(currentTime)}/${formatDuration(duration)}`;
+    controls.prog().value = (currentTime / duration);
+    controls.count().innerHTML = `${formatDuration(currentTime)}/${formatDuration(duration)}`;
 }
 
 function togglePlay() {
@@ -96,59 +124,39 @@ function togglePlay() {
 }
 
 function fullscreened(e) {
-    const player = document.querySelector('#playerContainer');
-    player.classList.add('fullscreened');
-    player.webkitRequestFullscreen();
+    controls.player().classList.add('fullscreened');
+    controls.player().webkitRequestFullscreen();
 }
 
 function smallscreened(e) {
-    const player = document.querySelector('#playerContainer');
-    player.classList.remove('fullscreened');
+    controls.player().classList.remove('fullscreened');
     document.webkitExitFullscreen();
 }
 
 function hideFileArea() {
-    const player = document.querySelector('#playerContainer');
+    controls.playButton().classList.add('hide');
+    controls.pauseButton().classList.remove('hide');
+    controls.player().classList.remove('paused');
 
-    document.querySelector('#play').classList.add('hide');
-    document.querySelector('#pause').classList.remove('hide');
-    player.classList.remove('paused');
+    controls.dropArea().classList.add('hidden');
 
-    const dropArea = document.querySelector('#dropArea');
-    dropArea.classList.add('hidden');
-
-    setTimeout(
-        () => {
-            const dropArea = document.querySelector('#dropArea');
-            dropArea.classList.add('hide');
-        },
-        500
-    );
+    setTimeout(() => controls.dropArea().classList.add('hide'), 500);
 }
 
 function showFileArea(showPlay) {
-
     if (showPlay) {
-        document.querySelector('#pause').classList.add('hide');
-        document.querySelector('#play').classList.remove('hide');
+        controls.pauseButton().classList.add('hide');
+        controls.playButton().classList.remove('hide');
     } else {
-        document.querySelector('#play').classList.remove('hide');
-        document.querySelector('#pause').classList.add('hide');
+        controls.playButton().classList.remove('hide');
+        controls.pauseButton().classList.add('hide');
     }
 
-    const player = document.querySelector('#playerContainer');
-    player.classList.add('paused');
+    controls.player().classList.add('paused');
 
-    const dropArea = document.querySelector('#dropArea');
-    dropArea.classList.remove('hide');
+    controls.dropArea().classList.remove('hide');
 
-    setTimeout(
-        () => {
-            const dropArea = document.querySelector('#dropArea');
-            dropArea.classList.remove('hidden');
-        },
-        10
-    );
+    setTimeout(() => controls.dropArea().classList.remove('hidden'), 10);
 }
 
 function makeDroppable(e) {
@@ -179,22 +187,17 @@ function loadVideo(e) {
 
     const dashCamFileNameRegex = /(\\\d\d\d\d-\d\d-\d\d_\d\d-\d\d-\d\d-)(front|back|left_repeater|right_repeater)(.mp4)/;
 
-    const rootFile = files[0];
-    console.log(rootFile);
-    if (rootFile.type.indexOf('video') > -1 && rootFile.path.match(dashCamFileNameRegex)) {
-        const frontVideoFile = rootFile.path.replace(dashCamFileNameRegex, "$1front$3");
-        const backVideoFile = rootFile.path.replace(dashCamFileNameRegex, "$1back$3");
-        const leftVideoFile = rootFile.path.replace(dashCamFileNameRegex, "$1left_repeater$3");
-        const rightVideoFile = rootFile.path.replace(dashCamFileNameRegex, "$1right_repeater$3");
-
-        v.Front().src = frontVideoFile;
-        v.Back().src = backVideoFile;
-        v.Left().src = leftVideoFile;
-        v.Right().src = rightVideoFile;
+    const basePath = files[0].path;
+    console.log(basePath);
+    if (basePath.match(dashCamFileNameRegex)) {
+        v.Front().src = basePath.replace(dashCamFileNameRegex, "$1front$3");
+        v.Back().src = basePath.replace(dashCamFileNameRegex, "$1back$3");
+        v.Left().src = basePath.replace(dashCamFileNameRegex, "$1left_repeater$3");
+        v.Right().src = basePath.replace(dashCamFileNameRegex, "$1right_repeater$3");
 
         setTimeout(
             () => {
-                document.querySelector('.dropArea').classList.remove('droppableArea');
+                controls.dropArea().classList.remove('droppableArea');
                 togglePlay();
             },
             250
@@ -203,22 +206,15 @@ function loadVideo(e) {
 }
 
 function videoError(message) {
-    const err = document.querySelector('#error');
-    err.querySelector('h1').innerHTML = message;
-    err.classList.remove('hide');
+    controls.errorPane().querySelector('h1').innerHTML = message;
+    controls.errorPane().classList.remove('hide');
 
-    setTimeout(
-        () => document.querySelector('#error').classList.remove('hidden'),
-        10
-    );
+    setTimeout(() => controls.errorPane().classList.remove('hidden'), 10);
 }
 
 function closeError() {
-    document.querySelector('#error').classList.add('hidden');
-    setTimeout(
-        () => document.querySelector('#error').classList.add('hide'),
-        300
-    );
+    controls.errorPane().classList.add('hidden');
+    setTimeout(() => controls.errorPane().classList.add('hide'), 300);
 }
 
 const playerControl = {
@@ -231,10 +227,10 @@ const playerControl = {
         v.Front().play();
     },
     pause: () => v.Front().pause(),
-    volume: () => document.querySelector('#volRange').classList.toggle('hidden'),
+    volume: () => controls.volRange().classList.toggle('hidden'),
     mute: () => {
         v.Front().muted = (!v.Front().muted);
-        player.classList.toggle('muted');
+        controls.player().classList.toggle('muted');
     },
     volRange: () => {
         //do nothing for now
@@ -243,11 +239,10 @@ const playerControl = {
     smallscreen: () => smallscreened(),
     prog: (e) => {
         v.Front().currentTime = ((e.offsetX) / e.target.offsetWidth) * v.Front().duration;
-        v.Back().currentTime =
-            v.Left().currentTime = v.Right().currentTime = v.Front().currentTime;
+        v.Back().currentTime = v.Left().currentTime = v.Right().currentTime = v.Front().currentTime;
     },
     close: () => window.close(),
-    fileChooser: () => document.querySelector('#chooseVideo').click(),
+    fileChooser: () => controls.videoChooser().click(),
     enterLink: () => {
         //do nothing for now
     },
@@ -256,66 +251,15 @@ const playerControl = {
 };
 
 function playerClicked(e) {
-    if (!e.target.id || e.target.id === 'controlContainer' || e.target.id === 'dropArea' || e.target.id === 'count') {
+    if (!e.target.id || e.target.id === 'controlContainer' || e.target.id === 'dropArea'
+        || e.target.id === 'count') {
         return;
     }
 
-    const player = document.querySelector('#playerContainer');
-
-    if(playerControl[e.target.id]) {
+    if (playerControl[e.target.id]) {
+        console.log(`player.${e.target.id}`);
         playerControl[e.target.id](e);
     } else {
         console.log(`stop half assing shit. what the hell is ${e.target.id}`);
     }
-    /*switch (e.target.id) {
-        case 'video' :
-            togglePlay();
-            break;
-        case 'play' :
-            if (!v.Front().videoWidth) {
-                videoError('Error Playing Video');
-                return;
-            }
-            v.Front().play();
-            break;
-        case 'pause' :
-            v.Front().pause();
-            break;
-        case 'volume' :
-            document.querySelector('#volRange').classList.toggle('hidden');
-            break;
-        case 'mute' :
-            v.Front().muted = (!v.Front().muted);
-            player.classList.toggle('muted');
-            break;
-        case 'volRange' :
-            //do nothing for now
-            break;
-        case 'fullscreen' :
-            fullscreened();
-            break;
-        case 'smallscreen' :
-            smallscreened();
-            break;
-        case 'prog' :
-            v.Front().currentTime = ((e.offsetX) / e.target.offsetWidth) * v.Front().duration;
-            v.Back().currentTime =
-                v.Left().currentTime = v.Right().currentTime = v.Front().currentTime;
-            break;
-        case 'close' :
-            window.close();
-            break;
-        case 'fileChooser' :
-            document.querySelector('#chooseVideo').click();
-            break;
-        case 'enterLink' :
-            //do nothing for now
-            break;
-        case 'error' :
-        case 'errorMessage' :
-            closeError();
-            break;
-        default :
-            console.log('stop half assing shit.');
-    }                                             */
 }
