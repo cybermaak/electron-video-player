@@ -5,7 +5,10 @@
   "version": "0.0.1",
   "main": "app/main.js",
   "author": "RIAEvangelist,cybermaak",
-  "dependencies": {},
+  "dependencies": {
+    "npm": "^6.12.1",
+    "update": "^0.7.4"
+  },
   "devDependencies": {
     "electron-builder": "^22.1.0",
     "electron": "^2.0.18"
@@ -17,11 +20,19 @@
       "packageCategory": "video"
     },
     "mac": {
-      "category": "public.app-category.video" ,
-      "target": ["dmg", "pkg"]
+      "category": "public.app-category.video",
+      "target": [
+        "dmg",
+        "pkg"
+      ]
     },
     "win": {
-      "target": ["zip", "nsis", "portable", "msi"]
+      "target": [
+        "zip",
+        "nsis",
+        "portable",
+        "msi"
+      ]
     }
   },
   "scripts": {
