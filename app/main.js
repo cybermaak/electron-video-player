@@ -13,8 +13,8 @@ function createWindow () {
   mainWindow = new BrowserWindow({
 		  title:'Electron Video Player',
 		  'accept-first-mouse':true,
-		  width: 640,
-		  height: 480,
+		  width: 1024,
+		  height: 768,
 		  'min-width': 640,
 		  'min-height': 480,
 		  frame:false,

@@ -14,11 +14,25 @@ function formatDuration(s) {
     return time.map(t => t.toString().padStart(2, '0')).join(':');
 }
 
+const dashCamFileNameRegex = /(\d\d\d\d-\d\d-\d\d_\d\d-\d\d-\d\d-)(front|back|left_repeater|right_repeater)(.mp4)/;
+
 const v = {
     Front: () => document.querySelector('#videoContainerFront'),
     Back: () => document.querySelector('#videoContainerBack'),
     Left: () => document.querySelector('#videoContainerLeft'),
     Right: () => document.querySelector('#videoContainerRight'),
+
+    loadFromBaseFile:function (basePath)  {
+        const p = (video, label, suffix) => {
+            video.src = basePath.replace(dashCamFileNameRegex, `$1${suffix}$3`);
+            document.querySelector(label)
+                .innerHTML= video.src.match(dashCamFileNameRegex)[0];
+        };
+        p(this.Front(),'#videoLabelFront', 'front');
+        p(this.Back(), '#videoLabelBack', 'back');
+        p(this.Left(), '#videoLabelLeft', 'left_repeater');
+        p(this.Right(), '#videoLabelRight', 'right_repeater');
+    },
 
     hasEnded: false,
 
@@ -185,15 +199,10 @@ function loadVideo(e) {
         ];
     }
 
-    const dashCamFileNameRegex = /(\\\d\d\d\d-\d\d-\d\d_\d\d-\d\d-\d\d-)(front|back|left_repeater|right_repeater)(.mp4)/;
-
     const basePath = files[0].path;
     console.log(basePath);
     if (basePath.match(dashCamFileNameRegex)) {
-        v.Front().src = basePath.replace(dashCamFileNameRegex, "$1front$3");
-        v.Back().src = basePath.replace(dashCamFileNameRegex, "$1back$3");
-        v.Left().src = basePath.replace(dashCamFileNameRegex, "$1left_repeater$3");
-        v.Right().src = basePath.replace(dashCamFileNameRegex, "$1right_repeater$3");
+        v.loadFromBaseFile(basePath);
 
         setTimeout(
             () => {
