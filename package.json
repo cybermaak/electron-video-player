@@ -21,16 +21,10 @@
     },
     "mac": {
       "category": "public.app-category.video",
-      "target": [
-        "dmg",
-        "pkg"
-      ]
+      "target": [ "dmg" ]
     },
     "win": {
-      "target": [
-        "nsis",
-        "portable"
-      ]
+      "target": [ "portable" ]
     }
   },
   "scripts": {
