@@ -42,3 +42,4 @@ deploy:
   file: dist/*
   on:
     repo: cybermaak/electron-video-player
+    tags: true
