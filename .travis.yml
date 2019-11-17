@@ -39,6 +39,6 @@ deploy:
     secure: UZAl+bKCJYKAoLK7PC6g2+AIk2zHz38UsP/pqBa8PC92DDaiATxNZvw5Q0Wfpf4F6ikduQvrUYAGOrhT0NM2xFIsxA1p2khSz0JCPojsNse3EGoEPPDM21ZPd7Jasj8MvfOJt++A9sUbiNCc2VthKvJtIj/vvuLRV9fi/NXlZk5V2/EAJ/pm97/IVk7C0WcOz9YARdSblGw63lxihUuephGsSA079BZpsJ0oIWic/DkMDfXC6WdhJfi/F31rq8zIaL67zrlyOMy0yOQX0o40XaYEzyIO/kJTNEs6B4TMQ+7xU/YEG8kL8JiG31oMOXGHXLgN4liUEQt90p2BFDcYxxaTj6Hs03YhWegDQ1LDyLhmgKkYbTLQRKidbIh5hC+gpsOsLvgRWszdoCTDScOfeN+y288xcyIp19Ue5kZdcmyArpxkLVelKXUzEfzOwxmi1Ysm1JOFtsUdf5l81boVgIQ9mOTmivyxaRSNcFiDabVtsa/8wWfhzlGFllSxx83WfbbZUYNzEWYP/ZtMOoJQXuvGXOuFYMENIFWfNCwz7aH7fph41ccF1OmEuinQH4Q+BKy8nLUWkqune6P4DILOQFE5lcLBXKVslWBhB9weGVVw8nroT2EFgyvleaIu61evnrBmbar4CRTHYi0uPSdNDDLTUK4w9KVmECEYM+lT73Y=
   skip_cleanup: true
   file_glob: true
-  file: dist/Tesla.Cam.Viewer-*
+  file: dist/*
   on:
     repo: cybermaak/electron-video-player
